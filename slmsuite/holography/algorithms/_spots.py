@@ -1261,7 +1261,7 @@ class SpotHologram(_AbstractSpotHologram):
         else:
             self.spot_integration_width_ij = None
 
-        self.spot_integration_width_ij = spot_integration_width_ij or self.spot_integration_width_ij
+        self.spot_integration_width_ij = self.spot_integration_width_ij if spot_integration_width_ij is None else spot_integration_width_ij
 
         # Check to make sure spots are within relevant camera and SLM shapes.
         if (
