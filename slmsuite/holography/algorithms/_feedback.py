@@ -1,3 +1,5 @@
+from typing import Any
+
 from slmsuite.holography.algorithms._header import *
 from slmsuite.holography.algorithms._hologram import Hologram
 
@@ -29,12 +31,12 @@ class FeedbackHologram(Hologram):
 
     def __init__(
         self,
-        shape: tuple,
-        target_ij=None,
-        cameraslm=None,
-        null_region=None,
+        shape: tuple[int, int],
+        target_ij: np.ndarray | None = None,
+        cameraslm: Any = None,
+        null_region: np.ndarray | None = None,
         null_region_radius_frac: float | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initializes a hologram with camera feedback.
 
@@ -270,7 +272,11 @@ class FeedbackHologram(Hologram):
 
     # Target update.
     def update_target(
-        self, new_target_ij, null_region=None, null_region_radius_frac=None, reset_weights: bool = False
+        self,
+        new_target_ij: np.ndarray,
+        null_region: np.ndarray | None = None,
+        null_region_radius_frac: float | None = None,
+        reset_weights: bool = False,
     ) -> None:
         """Change the target to something new. This method handles cleaning and normalization.
 
@@ -362,8 +368,10 @@ class FeedbackHologram(Hologram):
             self.measure("knm")  # Make sure data is there.
             self._update_weights_generic(self.weights, self.img_knm, self.target)
 
-    def _calculate_stats_experimental(self, stats: dict, stat_groups: list = []) -> None:
+    def _calculate_stats_experimental(self, stats: dict[str, Any], stat_groups: list[str] | None = None) -> None:
         """Wrapped by :meth:`FeedbackHologram._update_stats()`."""
+        if stat_groups is None:
+            stat_groups = []
         if "experimental_knm" in stat_groups:
             self.measure("knm")  # Make sure data is there.
 
@@ -384,7 +392,7 @@ class FeedbackHologram(Hologram):
                 raw="raw_stats" in self.flags and self.flags["raw_stats"],
             )
 
-    def _update_stats(self, stat_groups: list = []) -> None:
+    def _update_stats(self, stat_groups: list[str] | None = None) -> None:
         """Calculate statistics corresponding to the desired ``stat_groups``.
 
         Parameters
@@ -392,7 +400,9 @@ class FeedbackHologram(Hologram):
         stat_groups : list of str
             Which groups or types of statistics to analyze.
         """
-        stats = {}
+        if stat_groups is None:
+            stat_groups = []
+        stats: dict[str, Any] = {}
 
         self._calculate_stats_computational(stats, stat_groups)
         self._calculate_stats_experimental(stats, stat_groups)

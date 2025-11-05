@@ -1,3 +1,5 @@
+from typing import Any
+
 from slmsuite.holography.algorithms._header import *
 
 
@@ -5,8 +7,13 @@ class _HologramStats:
     # Statistics handling.
     @staticmethod
     def _calculate_stats(
-        feedback_amp, target_amp, xp=cp, efficiency_compensation: bool = True, total=None, raw: bool = False
-    ) -> dict:
+        feedback_amp: np.ndarray | Any,
+        target_amp: np.ndarray | Any,
+        xp: Any = cp,
+        efficiency_compensation: bool = True,
+        total: float | None = None,
+        raw: bool = False,
+    ) -> dict[str, Any]:
         """Helper function to analyze how close the feedback is to the target.
 
         Parameters
@@ -107,8 +114,10 @@ class _HologramStats:
 
         return final_stats
 
-    def _calculate_stats_computational(self, stats, stat_groups: list = []) -> None:
+    def _calculate_stats_computational(self, stats: dict[str, Any], stat_groups: list[str] | None = None) -> None:
         """Wrapped by :meth:`Hologram._update_stats()`."""
+        if stat_groups is None:
+            stat_groups = []
         if "computational" in stat_groups:
             stats["computational"] = self._calculate_stats(
                 self.amp_ff,
@@ -117,7 +126,7 @@ class _HologramStats:
                 raw="raw_stats" in self.flags and self.flags["raw_stats"],
             )
 
-    def _update_stats_dictionary(self, stats: dict) -> None:
+    def _update_stats_dictionary(self, stats: dict[str, Any]) -> None:
         """Helper function to manage additions to the :attr:`stats`.
 
         Parameters
@@ -192,7 +201,7 @@ class _HologramStats:
 
             self.stats["raw_farfield"][self.iter] = farfield
 
-    def _update_stats(self, stat_groups: list = []) -> None:
+    def _update_stats(self, stat_groups: list[str] | None = None) -> None:
         """Calculate statistics corresponding to the desired ``stat_groups``.
 
         Parameters
@@ -200,6 +209,8 @@ class _HologramStats:
         stat_groups : list of str
             Which groups or types of statistics to analyze.
         """
+        if stat_groups is None:
+            stat_groups = []
         stats = {}
 
         self._calculate_stats_computational(stats, stat_groups)
@@ -295,7 +306,9 @@ class _HologramStats:
 
     # Visualization helper functions.
     @staticmethod
-    def _compute_limits(source, epsilon: float = 0, limit_padding: float = 0.1) -> list:
+    def _compute_limits(
+        source: np.ndarray | Any, epsilon: float = 0, limit_padding: float = 0.1
+    ) -> list[tuple[int, int] | Any]:
         """Returns the rectangular region which crops around non-zero pixels in the
         ``source`` image. See :meth:`plot_farfield()`.
         """
@@ -321,7 +334,14 @@ class _HologramStats:
 
         return limits
 
-    def plot_nearfield(self, source=None, title="", padded=False, figsize=(8, 4), cbar=False):
+    def plot_nearfield(
+        self,
+        source: np.ndarray | Any | None = None,
+        title: str = "",
+        padded: bool = False,
+        figsize: tuple[int, int] = (8, 4),
+        cbar: bool = False,
+    ) -> None:
         """Plots the amplitude (left) and phase (right) of the nearfield (plane of the SLM).
         The amplitude is assumed (whether uniform, assumed, or measured) while the
         phase is the result of optimization.
@@ -406,14 +426,14 @@ class _HologramStats:
 
     def plot_farfield(
         self,
-        source=None,
-        title="",
-        limits=None,
-        units="knm",
-        limit_padding=0.1,
-        figsize=(8, 4),
-        cbar=False,
-    ):
+        source: np.ndarray | Any | None = None,
+        title: str = "",
+        limits: list[Any] | Any | None = None,
+        units: str = "knm",
+        limit_padding: float = 0.1,
+        figsize: tuple[int, int] = (8, 4),
+        cbar: bool = False,
+    ) -> None:
         """Plots an overview (left) and zoom (right) view of ``source``.
 
         Parameters
@@ -692,9 +712,9 @@ class _HologramStats:
 
     def plot_stats(
         self,
-        stats_dict: dict | None = None,
-        stat_groups: list = [],
-        ylim: tuple | None = None,
+        stats_dict: dict[str, Any] | None = None,
+        stat_groups: list[str] | None = None,
+        ylim: tuple[float, float] | None = None,
         show: bool = False,
     ) -> Any:
         """Plots the statistics contained in the given dictionary.
@@ -714,6 +734,8 @@ class _HologramStats:
         """
         if stats_dict is None:
             stats_dict = self.stats
+        if stat_groups is None:
+            stat_groups = []
 
         _, ax = plt.subplots(1, 1, figsize=(6, 4))
 
@@ -723,7 +745,7 @@ class _HologramStats:
 
         niter = np.arange(0, len(stats_dict["method"]))
 
-        if stat_groups is None or len(stat_groups) == 0:
+        if len(stat_groups) == 0:
             stat_keys = list(stats_dict["stats"].keys())
         else:
             stat_keys = [str(group) for group in stat_groups]

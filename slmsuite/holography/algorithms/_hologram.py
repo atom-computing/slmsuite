@@ -1,3 +1,5 @@
+from typing import Any
+
 from slmsuite.holography.algorithms._header import *
 from slmsuite.holography.algorithms._stats import _HologramStats
 
@@ -195,8 +197,15 @@ class Hologram(_HologramStats):
     """
 
     def __init__(
-        self, target, amp=None, phase=None, slm_shape=None, dtype=np.float32, propagation_kernel=None, **kwargs
-    ):
+        self,
+        target: np.ndarray | tuple[int, int] | None,
+        amp: np.ndarray | Any | None = None,
+        phase: np.ndarray | Any | None = None,
+        slm_shape: tuple[int, int] | Any | None = None,
+        dtype: type = np.float32,
+        propagation_kernel: np.ndarray | Any | None = None,
+        **kwargs: Any,
+    ) -> None:
         r"""Initialize datastructures for optimization.
         When :mod:`cupy` is enabled, arrays are initialized on the GPU as :mod:`cupy` arrays:
         take care to use class methods to access these parameters instead of editing
@@ -603,12 +612,12 @@ class Hologram(_HologramStats):
 
     @staticmethod
     def get_padded_shape(
-        slm_shape,
-        padding_order=1,
-        square_padding=True,
-        precision=np.inf,
-        precision_basis="kxy",
-    ):
+        slm_shape: tuple[int, int] | Any,
+        padding_order: int = 1,
+        square_padding: bool = True,
+        precision: float = np.inf,
+        precision_basis: str = "kxy",
+    ) -> tuple[int, int]:
         """Helper function to calculate the shape of the computational space.
         For a given base ``slm_shape``, pads to the user's requirements.
         If the user chooses multiple requirements, the largest
@@ -705,7 +714,7 @@ class Hologram(_HologramStats):
 
         return shape
 
-    def _calculate_memory_constrained_shape(self, device: int = 0, dtype=None) -> float:
+    def _calculate_memory_constrained_shape(self, device: int = 0, dtype: type | None = None) -> float:
         if dtype is None:
             dtype = self.dtype
 
@@ -960,7 +969,7 @@ class Hologram(_HologramStats):
                 analysis.image_vortices_remove(self.phase_ff, self.target > 0)
                 self.plot_farfield(self.phase_ff, title="phase removal after", limits=limits)
 
-    def _build_nearfield(self, phase_torch=None) -> Any:
+    def _build_nearfield(self, phase_torch: Any | None = None) -> Any:
         """Populate nearfield with data from amp and phase."""
         (i0, i1, i2, i3) = toolbox.unpad(self.shape, self.slm_shape)
         self.nearfield.fill(0)
@@ -998,7 +1007,7 @@ class Hologram(_HologramStats):
         if self.propagation_kernel is not None:
             self.phase -= self.propagation_kernel
 
-    def _nearfield2farfield(self, phase_torch=None) -> Any:
+    def _nearfield2farfield(self, phase_torch: Any | None = None) -> Any:
         """Maps the nearfield to the farfield by a discrete Fourier transform.
         This should populate :attr:`farfield`.
         This function is overloaded by subclasses.
@@ -1039,11 +1048,11 @@ class Hologram(_HologramStats):
         method: str = "GS",
         maxiter: int = 20,
         verbose: bool = True,
-        callback=None,
-        feedback=None,
-        stat_groups: list = [],
-        **kwargs,
-    ) -> dict:
+        callback: Any | None = None,
+        feedback: str | None = None,
+        stat_groups: list[str] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         r"""Optimizers to solve the "phase problem": approximating the nearfield phase that
         transforms a known nearfield source amplitude to a desired farfield
         target amplitude.
@@ -1327,7 +1336,9 @@ class Hologram(_HologramStats):
         else:
             raise ValueError(f"Unsupported optimization method '{method}'")
 
-    def _update_flags(self, method: str, verbose: bool, feedback, stat_groups: list, **kwargs) -> None:
+    def _update_flags(
+        self, method: str, verbose: bool, feedback: str | None, stat_groups: list[str] | None, **kwargs: Any
+    ) -> None:
         """Helper function for :meth:`optimize()` to parse arguments."""
         # 0) Check and record method.
         methods = list(ALGORITHM_DEFAULTS.keys())
@@ -1369,7 +1380,7 @@ class Hologram(_HologramStats):
             print(end="", flush=True)  # Prevent tqdm conflicts.
 
     # GS- or WGS-type optimization.
-    def optimize_gs(self, iterations, callback=None) -> None:
+    def optimize_gs(self, iterations: Any, callback: Any | None = None) -> None:
         """GPU-accelerated Gerchberg-Saxton (GS) iterative phase retrieval.
 
         Solves the "phase problem": approximates the nearfield phase that
@@ -1436,7 +1447,7 @@ class Hologram(_HologramStats):
         # Update the final farfield using phase and amp.
         self._populate_results()
 
-    def _mraf_helper_routines(self) -> dict:
+    def _mraf_helper_routines(self) -> dict[str, Any]:
         # MRAF helper variables
         if np == cp:
             mraf_enabled = np.isnan(np.sum(self.target))
@@ -1491,7 +1502,7 @@ class Hologram(_HologramStats):
             "zero_region": zero_region,
         }
 
-    def _gs_farfield_routines(self, mraf_variables: dict) -> None:
+    def _gs_farfield_routines(self, mraf_variables: dict[str, Any]) -> None:
         # Weight, if desired.
         if "WGS" in self.flags["method"] and self.iter > 0:
             self._update_weights()
@@ -1607,7 +1618,7 @@ class Hologram(_HologramStats):
         # self.farfield /= Hologram._norm(self.farfield, xp=cp)
 
     # Conjugate gradient optimization.
-    def optimize_cg(self, iterations, callback=None) -> None:
+    def optimize_cg(self, iterations: Any, callback: Any | None = None) -> None:
         """Conjugate Gradient (CG) iterative phase retrieval.
 
         **(This feature is experimental.)**
@@ -1684,7 +1695,7 @@ class Hologram(_HologramStats):
         # Update the final farfield using phase and amp.
         self._populate_results()
 
-    def _cg_loss(self, phase_torch) -> Any:
+    def _cg_loss(self, phase_torch: Any) -> Any:
         """Computes the loss of the current trial phase pattern."""
         # Grab
         farfield_torch = self._nearfield2farfield(phase_torch=phase_torch)
@@ -1713,7 +1724,7 @@ class Hologram(_HologramStats):
             return loss(farfield_feedback_torch, target_torch)
 
     @staticmethod
-    def _get_torch_tensor_from_cupy(array) -> Any:
+    def _get_torch_tensor_from_cupy(array: Any) -> Any:
         if torch is None:
             raise RuntimeError("Cannot get torch tensor without torch. Something is wrong.")
 
@@ -1727,8 +1738,13 @@ class Hologram(_HologramStats):
 
     # Weighting functions.
     def _update_weights_generic(
-        self, weight_amp: np.ndarray, feedback_amp: np.ndarray, target_amp: np.ndarray, xp=cp, nan_checks: bool = True
-    ) -> np.ndarray:
+        self,
+        weight_amp: np.ndarray | Any,
+        feedback_amp: np.ndarray | Any,
+        target_amp: np.ndarray | Any,
+        xp: Any = cp,
+        nan_checks: bool = True,
+    ) -> np.ndarray | Any:
         """Helper function to process weight feedback according to the chosen weighting method.
 
         Caution:
@@ -1762,8 +1778,13 @@ class Hologram(_HologramStats):
             return self._update_weights_generic_cuda(weight_amp, feedback_amp, target_amp)
 
     def _update_weights_generic_cupy(
-        self, weight_amp: np.ndarray, feedback_amp: np.ndarray, target_amp: np.ndarray, xp=cp, nan_checks: bool = True
-    ) -> np.ndarray:
+        self,
+        weight_amp: np.ndarray | Any,
+        feedback_amp: np.ndarray | Any,
+        target_amp: np.ndarray | Any,
+        xp: Any = cp,
+        nan_checks: bool = True,
+    ) -> np.ndarray | Any:
         method = self.flags["method"].lower()
         if method[:4] != "wgs-":
             raise ValueError("Weighting is only for WGS.")
@@ -1825,8 +1846,8 @@ class Hologram(_HologramStats):
         return weight_amp
 
     def _update_weights_generic_cuda(
-        self, weight_amp: np.ndarray, feedback_amp: np.ndarray, target_amp: np.ndarray
-    ) -> np.ndarray:
+        self, weight_amp: np.ndarray | Any, feedback_amp: np.ndarray | Any, target_amp: np.ndarray | Any
+    ) -> np.ndarray | Any:
         N = weight_amp.size
 
         feedback_amp = cp.array(feedback_amp, copy=(False if np.__version__[0] == "1" else None))
@@ -1915,7 +1936,7 @@ class Hologram(_HologramStats):
             return mempool.get_limit()
 
     @staticmethod
-    def _norm(matrix, xp=cp) -> float:
+    def _norm(matrix: Any, xp: Any = cp) -> float:
         r"""Computes the root of the sum of squares of the given ``matrix``. Implements
 
         .. math:: \sqrt{\iint |\vec{E}|^2}.
