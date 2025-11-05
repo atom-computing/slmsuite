@@ -1,8 +1,7 @@
-"""
-setup.py - this module makes the package installable
+"""setup.py - this module makes the package installable
 """
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 NAME = "slmsuite"
 VERSION = "0.3.0"

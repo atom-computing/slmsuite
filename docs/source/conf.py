@@ -11,10 +11,11 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 import base64
-import os
-import sys
 import inspect
+import os
+import pathlib
 import shutil
+import sys
 
 import requests
 
@@ -60,6 +61,7 @@ extlinks = {
     "pull": ("https://github.com/slmsuite/slmsuite/pull/%s", "PR"),
 }
 
+
 # Adapted from https://github.com/DisnakeDev/disnake/blob/7853da70b13fcd2978c39c0b7efa59b34d298186/docs/conf.py#L192
 def linkcode_resolve(domain, info):
     if domain != 'py':
@@ -81,7 +83,8 @@ def linkcode_resolve(domain, info):
         return None
 
     path = f"{path}#L{lineno}-L{lineno + len(src) - 1}"
-    return f"https://github.com/slmsuite/slmsuite/blob/main/slmsuite/" + path
+    return "https://github.com/slmsuite/slmsuite/blob/main/slmsuite/" + path
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["templates"]
@@ -102,10 +105,10 @@ autodoc_member_order = "bysource"   # This doesn't work for autosummary unfortun
                                     # https://github.com/sphinx-doc/sphinx/issues/5379
 # autodoc_typehints = "signature"
 napoleon_use_param = True
-add_module_names = False # Remove namespaces from class/method signatures
+add_module_names = False  # Remove namespaces from class/method signatures
 
 nbsphinx_execute = "never"
-nbsphinx_allow_errors = True #continue through jupyter errors
+nbsphinx_allow_errors = True  # continue through jupyter errors
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -154,7 +157,7 @@ html_theme_options = {
         "image_dark": "static/slmsuite-dark.svg",
     },
     "show_prev_next": True,
-    "navbar_end": ["theme-switcher", "navbar-icon-links"], #, "search-field.html"
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],  # , "search-field.html"
     "icon_links": [
         {
             "name": "GitHub",
@@ -177,13 +180,14 @@ html_theme_options = {
     #     "json_url": "https://numpy.org/doc/_static/versions.json",
     # },
     "secondary_sidebar_items": {
-        "**" : ["page-toc", "edit-this-page", "sourcelink"],
-        "index" : [],
-        "examples" : [],
-    }, # , "breadcrumbs"
+        "**": ["page-toc", "edit-this-page", "sourcelink"],
+        "index": [],
+        "examples": [],
+    },  # , "breadcrumbs"
     "show_toc_level": 4
     # "secondary_sidebar_end": ["sidebar-ethical-ads"],
 }
+
 
 # https://stackoverflow.com/questions/5599254/how-to-use-sphinxs-autodoc-to-document-a-classs-init-self-method
 def skip(app, what, name, obj, would_skip, options):
@@ -192,19 +196,18 @@ def skip(app, what, name, obj, would_skip, options):
     if name in ("__init__",):
         skip_ = False
     # Don't document magic things.
-    elif name in ("__dict__", "__doc__", "__weakref__", "__module__"):
-        skip_ = True
-    # Don't document private things.
-    elif name[0] == '_':
+    elif name in ("__dict__", "__doc__", "__weakref__", "__module__") or name[0] == '_':
         skip_ = True
 
     return skip_
+
 
 examples_repo_owner = "slmsuite"
 examples_repo_name = "slmsuite-examples"
 # relative to this directory
 examples_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_examples")
 images_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../_build/html/_images")
+
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)
@@ -217,11 +220,10 @@ def setup(app):
     # Download example notebooks.
     # NOTE: GitHub API only supports downloading files up to 100 MB.
     try:
-        os.makedirs(examples_path, exist_ok=False)
-        os.makedirs(images_path, exist_ok=True)
+        pathlib.Path(examples_path).mkdir(exist_ok=False, parents=True)
+        pathlib.Path(images_path).mkdir(exist_ok=True, parents=True)
         tree_url = (
-            "https://api.github.com/repos/{}/{}/git/trees/main?recursive=1"
-            "".format(examples_repo_owner, examples_repo_name)
+            f"https://api.github.com/repos/{examples_repo_owner}/{examples_repo_name}/git/trees/main?recursive=1"
         )
         tree_response = requests.get(tree_url).json()
         for path_object in tree_response["tree"]:
@@ -234,26 +236,25 @@ def setup(app):
                     "".format(examples_repo_owner, examples_repo_name, path_object["sha"])
                 )
                 file_url2 = (
-                    "https://github.com/{}/{}/blob/main/{}?raw=true"
-                    "".format(examples_repo_owner, examples_repo_name, path_str)
+                    f"https://github.com/{examples_repo_owner}/{examples_repo_name}/blob/main/{path_str}?raw=true"
                 )
                 if path_str[-6:] == ".ipynb":
                     file_path = os.path.join(examples_path, file_name)
                     file_response = requests.get(file_url).json()
                     file_content = file_response["content"]
                     file_str = base64.b64decode(file_content.encode("utf8")).decode("utf8")
-                    with open(file_path, "w", encoding='utf8') as file_:
+                    with pathlib.Path(file_path).open("w", encoding='utf8') as file_:
                         file_.write(file_str)
                 else:
                     file_path = os.path.join(examples_path, file_name)
-                    with open(file_path, "wb") as file_:
+                    with pathlib.Path(file_path).open("wb") as file_:
                         file_.write(requests.get(file_url2).content)
 
                     image_path = os.path.join(images_path, file_name)
                     shutil.copy(file_path, image_path)
     except OSError as e:
         print("WARNING: Not downloading example notebooks because they have already been downloaded. "
-              "Update the examples by deleting the `_examples` directory (or `make clean`). Error:\n{}".format(e))
+              f"Update the examples by deleting the `_examples` directory (or `make clean`). Error:\n{e}")
     except BaseException as e:
         print("WARNING: Unable to download example notebooks. "
-              "Building without examples. Error:\n{}".format(e))
+              f"Building without examples. Error:\n{e}")

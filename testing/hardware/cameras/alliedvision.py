@@ -1,9 +1,11 @@
 import unittest
+
 import vmbpy
 
 from slmsuite.hardware.cameras.alliedvision import AlliedVision
 
 max_woi = (0, 2464, 0, 2064)
+
 
 class TestAlliedVision(unittest.TestCase):
 
@@ -73,9 +75,9 @@ class TestAlliedVision(unittest.TestCase):
                 self.cam.set_woi(woi)
                 self.assertEqual(woi, self.cam.woi)
 
-
     def tearDown(self):
         self.cam.close()
+
 
 if __name__ == '__main__':
     unittest.main()

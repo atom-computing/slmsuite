@@ -1,9 +1,11 @@
 import unittest
+
 from pypylon import pylon
 
 from slmsuite.hardware.cameras.basler import Basler
 
 max_woi = (0, 1936, 0, 1216)
+
 
 class TestBasler(unittest.TestCase):
 
@@ -28,6 +30,7 @@ class TestBasler(unittest.TestCase):
 
     def tearDown(self):
         self.cam.close()
+
 
 if __name__ == '__main__':
     unittest.main()
