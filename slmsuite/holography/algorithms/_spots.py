@@ -828,7 +828,7 @@ class CompressedSpotHologram(_AbstractSpotHologram):
         # FYI: Farfield shape is (N,)
         N = len(self)
 
-        def expand_kernel(kernel: Any, farfield: Any, out: Any) -> Any:
+        def expand_kernel(kernel: Any, farfield: Any, out: Any) -> cp.ndarray:
             # (1, N) x (N, H*W) = (1, H*W)   ===reshape===>   (H,W)
             return cp.matmul(farfield[np.newaxis, :], kernel, out=out[np.newaxis, :])
 
