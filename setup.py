@@ -1,22 +1,11 @@
-"""setup.py - this module makes the package installable
-"""
+"""setup.py - this module makes the package installable"""
 
 from setuptools import find_packages, setup
 
 NAME = "slmsuite"
 VERSION = "0.3.0"
-DEPENDENCIES = [
-    "numpy",
-    "scipy",
-    "opencv-python",
-    "matplotlib",
-    "h5py",
-    "tqdm"
-]
-DESCRIPTION = (
-    "Package for high-performance spatial light "
-    "modulator (SLM) control and holography."
-)
+DEPENDENCIES = ["numpy", "scipy", "opencv-python", "matplotlib", "h5py", "tqdm"]
+DESCRIPTION = "Package for high-performance spatial light modulator (SLM) control and holography."
 AUTHOR = "slmsuite developers"
 AUTHOR_EMAIL = "qp-slm@mit.edu"
 

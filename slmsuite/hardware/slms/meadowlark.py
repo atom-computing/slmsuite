@@ -209,8 +209,7 @@ class Meadowlark(SLM):
         """
 
     def close_sdk(self) -> None:
-        """See :meth:`.SLM.close`.
-        """
+        """See :meth:`.SLM.close`."""
         # If using a legacy SLM, it needs to be powered off
         if self.sdk_mode == _SDK_MODE.PCIE_LEGACY:
             Meadowlark._slm_lib[self.sdk_mode].SLM_power(ctypes.c_bool(False))
@@ -470,8 +469,7 @@ class Meadowlark(SLM):
 
     # Main write function
     def _set_phase_hw(self, display: np.ndarray, slm_number: int | None = None) -> None:
-        """See :meth:`.SLM._set_phase_hw`.
-        """
+        """See :meth:`.SLM._set_phase_hw`."""
         slm_number = ctypes.c_uint(slm_number or self.slm_number)
         if self.sdk_mode == _SDK_MODE.HDMI:
             Meadowlark._slm_lib[self.sdk_mode].Write_image(
