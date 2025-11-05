@@ -420,7 +420,7 @@ class CompressedSpotHologram(_AbstractSpotHologram):
             self.spot_integration_width_ij = int(2 * np.floor(self.spot_integration_width_ij / 2) + 1)
 
             cam_shape = cameraslm.cam.shape
-            self.spot_integration_width_ij = spot_integration_width_ij or self.spot_integration_width_ij
+            self.spot_integration_width_ij = self.spot_integration_width_ij if spot_integration_width_ij is None else spot_integration_width_ij
 
             if (
                 np.any(self.spot_ij[0] < self.spot_integration_width_ij / 2)
