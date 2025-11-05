@@ -1,5 +1,4 @@
-"""
-Hardware control for Meadowlark SLMs.
+"""Hardware control for Meadowlark SLMs.
 
 Meadowlark distributes several different interfaces for their products.
 The following versions are supported in slmsuite at Meadowlark's suggestion
@@ -10,20 +9,20 @@ The following versions are supported in slmsuite at Meadowlark's suggestion
    :widths: 25,25,25,25
    :header-rows: 1
 
-Note
+Note:
 ~~~~
 When multiple SDKs are installed, the most recent SDK is chosen by default.
 To choose otherwise, pass the path to the desired SDK.
 """
 
-import os
 import ctypes
+import os
 import warnings
 from enum import IntEnum
 from pathlib import Path
-import numpy as np
 from platform import system
-from typing import Union, Optional, Tuple, List
+
+import numpy as np
 
 from slmsuite.hardware.slms.slm import SLM
 
@@ -61,10 +60,9 @@ _SLM_LIB_TRACES = {
 
 
 class Meadowlark(SLM):
-    """
-    Interfaces with Meadowlark SLMs.
+    """Interfaces with Meadowlark SLMs.
 
-    Attributes
+    Attributes:
     ----------
     sdk_mode : _SDK_MODE
         Mode of this SLM.
@@ -78,20 +76,19 @@ class Meadowlark(SLM):
     _sdk_path = {}  # _SDK_Mode : str
     _number_of_boards = {}  # _SDK_Mode : int
 
-    def __init__(  # noqa: R0913, R0917
+    def __init__(
         self,
         slm_number: int = 1,
-        sdk_path: Optional[str] = None,
-        lut_path: Optional[str] = None,
+        sdk_path: str | None = None,
+        lut_path: str | None = None,
         wav_um: float = 1,
-        pitch_um: Optional[Tuple[float, float]] = None,
+        pitch_um: tuple[float, float] | None = None,
         verbose: bool = True,
         **kwargs,
     ):
-        r"""
-        Initializes an instance of a Meadowlark SLM.
+        r"""Initializes an instance of a Meadowlark SLM.
 
-        Arguments
+        Arguments:
         ---------
         verbose : bool
             Whether to print extra information.
@@ -101,7 +98,7 @@ class Meadowlark(SLM):
         sdk_path : str
             Path of the Blink SDK installation folder.
 
-            Important
+        Important:
             ~~~~~~~~~
             If the installation is not in the default folder,
             then this path needs to be specified. If there are multiple installations,
@@ -114,7 +111,7 @@ class Meadowlark(SLM):
             Passed to :meth:`load_lut`. Looks for the voltage 'look-up table' data
             which is necessary to run the SLM.
 
-            Tip
+        Tip:
             ~~~
             See :meth:`load_lut` for how the default
             argument and other options are parsed.
@@ -194,7 +191,7 @@ class Meadowlark(SLM):
             bitdepth=Meadowlark._get_bitdepth(self.sdk_mode, self.slm_number),
             name=kwargs.pop("name", Meadowlark._get_serial(self.sdk_mode, self.slm_number)),
             wav_um=wav_um,
-            pitch_um=(pitch_um if pitch_um else Meadowlark._get_pitch(self.sdk_mode, self.slm_number)),
+            pitch_um=(pitch_um or Meadowlark._get_pitch(self.sdk_mode, self.slm_number)),
             **kwargs,
         )
 
@@ -207,16 +204,12 @@ class Meadowlark(SLM):
         self.set_phase(None)
 
     def close(self) -> None:
-        """
-        Use :meth:`.SLM.close_sdk` to close the SDK, though this might break
+        """Use :meth:`.SLM.close_sdk` to close the SDK, though this might break
         other SLMs on the same SDK. See :meth:`.SLM.close`.
         """
-        pass
 
     def close_sdk(self) -> None:
-        """
-        See :meth:`.SLM.close`.
-        """
+        """See :meth:`.SLM.close`."""
         # If using a legacy SLM, it needs to be powered off
         if self.sdk_mode == _SDK_MODE.PCIE_LEGACY:
             Meadowlark._slm_lib[self.sdk_mode].SLM_power(ctypes.c_bool(False))
@@ -249,9 +242,8 @@ class Meadowlark(SLM):
 
     # General SDK inspection methods.
     @staticmethod
-    def info(verbose: bool = True, sdk_path: str = None) -> List[Tuple[int, str]]:
-        """
-        Discover the SLMs connected to the selected SDK.
+    def info(verbose: bool = True, sdk_path: str = None) -> list[tuple[int, str]]:
+        """Discover the SLMs connected to the selected SDK.
         Note that for HDMI, the SLM's display window will open at this stage.
 
         Parameters
@@ -261,19 +253,19 @@ class Meadowlark(SLM):
         sdk_path : str
             Path of the Blink SDK installation folder to explore.
 
-        Returns
+        Returns:
         -------
         list
             The number and a descriptive string for each potential SLM.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             If multiple SLMs are not supported for this SDK
         """
         mode = Meadowlark._load_lib(sdk_path=sdk_path)
 
-        if not mode in Meadowlark._sdk_path:
+        if mode not in Meadowlark._sdk_path:
             raise RuntimeError("SDK failed to load.")
 
         info = [
@@ -288,7 +280,7 @@ class Meadowlark(SLM):
         ]
         if verbose:
             print(f"Using {_SDK_MODE_NAMES[mode]} SDK at '{Meadowlark._sdk_path[mode]}'")
-            if len(info):
+            if info:
                 for board, dims in info:
                     print(f"SLM {board}: {dims}")
             else:
@@ -297,10 +289,9 @@ class Meadowlark(SLM):
 
     @staticmethod
     def _get_serial(sdk_mode: _SDK_MODE, slm_number: int) -> int:
-        """
-        Get the serial of the SLM.
+        """Get the serial of the SLM.
 
-        Returns
+        Returns:
         -------
         str
             The serial of the SLM. Returns ``"Meadowlark HDMI"`` if HDMI SLM.
@@ -316,15 +307,14 @@ class Meadowlark(SLM):
 
     @staticmethod
     def _get_width(sdk_mode: _SDK_MODE, slm_number: int) -> int:
-        """
-        Get the width of the SLM.
+        """Get the width of the SLM.
 
-        Returns
+        Returns:
         -------
         int
             The width of the SLM.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             If the width retrieval is not supported for the SLM.
@@ -339,15 +329,14 @@ class Meadowlark(SLM):
 
     @staticmethod
     def _get_height(sdk_mode: _SDK_MODE, slm_number: int) -> int:
-        """
-        Get the height of the SLM
+        """Get the height of the SLM
 
-        Returns
+        Returns:
         -------
         int
             The height of the SLM.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             If the height retrieval is not supported for the SLM.
@@ -362,15 +351,14 @@ class Meadowlark(SLM):
 
     @staticmethod
     def _get_bitdepth(sdk_mode: _SDK_MODE, slm_number: int) -> int:
-        """
-        Get the image depth of the SLM.
+        """Get the image depth of the SLM.
 
-        Returns
+        Returns:
         -------
         int
             The image depth of the SLM.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             If the image depth retrieval is not supported for the SLM.
@@ -384,11 +372,10 @@ class Meadowlark(SLM):
             raise NotImplementedError("Image depth retrieval not supported for this model")
 
     @staticmethod
-    def _get_pitch(sdk_mode: _SDK_MODE, slm_number: int) -> Tuple[float, float]:
-        """
-        Get the pitch of the SLM.
+    def _get_pitch(sdk_mode: _SDK_MODE, slm_number: int) -> tuple[float, float]:
+        """Get the pitch of the SLM.
 
-        Returns
+        Returns:
         -------
         tuple[float, float]
             The pitch of the SLM. Defaults to (8,8) if this method is not supported.
@@ -406,15 +393,14 @@ class Meadowlark(SLM):
 
     # Assorted public methods
     def get_last_error_message(self) -> str:
-        """
-        Get the last error message from the SLM.
+        """Get the last error message from the SLM.
 
-        Returns
+        Returns:
         -------
         str
             The last error message.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             If the error message retrieval is not supported for the SLM.
@@ -426,10 +412,9 @@ class Meadowlark(SLM):
             raise NotImplementedError("Error message retrieval not supported for this model")
 
     def get_version_info(self) -> str:
-        """
-        Get the version information of the SLM.
+        """Get the version information of the SLM.
 
-        Returns
+        Returns:
         -------
         str
             Version information.
@@ -439,15 +424,14 @@ class Meadowlark(SLM):
         return sdk.Get_version_info().decode("utf-8")
 
     def get_temperature(self) -> float:
-        """
-        Read the temperature of the SLM.
+        """Read the temperature of the SLM.
 
-        Returns
+        Returns:
         -------
         float
             Temperature in degrees celsius.
 
-        Raises
+        Raises:
         ------
         Not Implemented Error
             If the temperature reading is not supported for the SLM.
@@ -462,15 +446,14 @@ class Meadowlark(SLM):
             raise NotImplementedError("Temperature reading not supported for this model.")
 
     def get_coverglass_voltage(self) -> float:
-        """
-        Read the voltage of the SLM coverglass.
+        """Read the voltage of the SLM coverglass.
 
-        Returns
+        Returns:
         -------
         float
             Voltage of the SLM coverglass.
 
-        Raises
+        Raises:
         ------
         Not Implemented Error
             If the coverglass voltage reading is not supported for the SLM.
@@ -485,11 +468,9 @@ class Meadowlark(SLM):
             raise NotImplementedError("Coverglass voltage reading not supported for this model.")
 
     # Main write function
-    def _set_phase_hw(self, display: np.ndarray, slm_number: Optional[int] = None) -> None:
-        """
-        See :meth:`.SLM._set_phase_hw`.
-        """
-        slm_number = ctypes.c_uint(slm_number if slm_number else self.slm_number)
+    def _set_phase_hw(self, display: np.ndarray, slm_number: int | None = None) -> None:
+        """See :meth:`.SLM._set_phase_hw`."""
+        slm_number = ctypes.c_uint(slm_number or self.slm_number)
         if self.sdk_mode == _SDK_MODE.HDMI:
             Meadowlark._slm_lib[self.sdk_mode].Write_image(
                 display.ctypes.data_as(ctypes.POINTER(ctypes.c_ubyte)),
@@ -545,20 +526,19 @@ class Meadowlark(SLM):
     # Load library helpers
     @staticmethod
     def _load_lib(sdk_path: str = None) -> int:
-        """
-        Infers the location of the Meadowlark SDK's dynamic linked library.
+        """Infers the location of the Meadowlark SDK's dynamic linked library.
 
         Parameters
         ----------
         sdk_path : str
             Path to search for the Meadowlark SDK.
 
-        Returns
+        Returns:
         -------
         str
             The path to the Meadowlark SDK folder.
 
-        Raises
+        Raises:
         ------
         FileNotFoundError
             If no Blink_C_Wrapper.dll files are found in provided path.
@@ -576,7 +556,7 @@ class Meadowlark(SLM):
         files.sort(key=os.path.getmtime, reverse=True)
         cases = []
         for file in files:
-            if not ("Cal Kit" in str(file)):
+            if "Cal Kit" not in str(file):
                 mode, dll_path, trace = Meadowlark._parse_header(file.parents[0], warn=True)
                 if mode:
                     cases.append((mode, dll_path, trace))
@@ -668,7 +648,7 @@ class Meadowlark(SLM):
                     ctypes.byref(constructed_okay),
                 )
 
-                if not (constructed_okay.value in [0, 1]):  # 0 is success but no boards found
+                if constructed_okay.value not in [0, 1]:  # 0 is success but no boards found
                     del Meadowlark._slm_lib[mode]
                     del Meadowlark._slm_lib_trace[mode]
                     del Meadowlark._sdk_path[mode]
@@ -683,15 +663,15 @@ class Meadowlark(SLM):
         return mode
 
     @staticmethod
-    def _parse_header(file: str, warn: bool = False) -> Tuple[_SDK_MODE, str, Tuple[int, int]]:
+    def _parse_header(file: str, warn: bool = False) -> tuple[_SDK_MODE, str, tuple[int, int]]:
         """Checks if a path has an appropriate header"""
         dll_path = os.path.join(file, "Blink_C_wrapper.dll")
-        dll_present = os.path.isfile(dll_path)
+        dll_present = Path(dll_path).is_file()
         header_path = os.path.join(file, "Blink_C_wrapper.h")
-        header_present = os.path.isfile(header_path)
+        header_present = Path(header_path).is_file()
 
         if header_present and dll_present:
-            with open(header_path, "r") as f:
+            with Path(header_path).open() as f:
                 data = f.read()
 
             trace = []
@@ -733,9 +713,8 @@ class Meadowlark(SLM):
         return _SDK_MODE.NULL, "", None
 
     # LUT stuff
-    def load_lut(self, lut_path: Optional[str] = None) -> str:
-        """
-        Loads a voltage 'look-up table' (LUT) to the SLM.
+    def load_lut(self, lut_path: str | None = None) -> str:
+        """Loads a voltage 'look-up table' (LUT) to the SLM.
         This converts requested phase values to physical voltage perturbing
         the liquid crystals.
 
@@ -751,12 +730,12 @@ class Meadowlark(SLM):
                 correspond to the LUT customized to an SLM, as Meadowlark sends such
                 files prefixed by ``"slm"`` such as ``"slm5758_at532.lut"``.
 
-        Returns
+        Returns:
         -------
         str
             The path which was used to load the LUT.
 
-        Raises
+        Raises:
         ------
         RuntimeError
             If the LUT file fails to load
@@ -781,7 +760,7 @@ class Meadowlark(SLM):
             lut_path = Path(self._sdk_path[self.sdk_mode]).parent
 
         # Find the exact LUT file
-        if os.path.isdir(lut_path):
+        if Path(lut_path).is_dir():
             try:
                 lut_path = Meadowlark._locate_lut_file(lut_path, slm_dims)
             except FileNotFoundError:
@@ -790,7 +769,7 @@ class Meadowlark(SLM):
                 lut_path = Meadowlark._locate_lut_file(Path(lut_path).parent, slm_dims)
 
         # If the search path doesn't exist, short circuit
-        if not os.path.exists(lut_path):
+        if not Path(lut_path).exists():
             raise FileNotFoundError(f"Failed to locate LUT at: '{lut_path}'")
 
         # Finally, actually load the LUT file
@@ -811,9 +790,8 @@ class Meadowlark(SLM):
             return lut_path
 
     @staticmethod
-    def _locate_lut_file(search_path: Union[str, Path], slm_shape: Optional[Tuple[int, int]] = None) -> str:
-        """
-        Locates the LUT file in the given path. If there are multiple, returns the
+    def _locate_lut_file(search_path: str | Path, slm_shape: tuple[int, int] | None = None) -> str:
+        """Locates the LUT file in the given path. If there are multiple, returns the
         most recent file.. If there are none with ".slm" in the
         name, simply returns the most recent ".lut" file.
 
@@ -824,12 +802,12 @@ class Meadowlark(SLM):
         slm_shape : (int, int)
             Shape of the SLM to search for, in standard ``(height, width)`` form.
 
-        Returns
+        Returns:
         -------
         str
             The path to the LUT file.
 
-        Raises
+        Raises:
         ------
         FileNotFoundError
             If no .lut files are found in provided path.

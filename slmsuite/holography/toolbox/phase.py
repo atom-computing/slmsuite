@@ -1,6 +1,5 @@
 """Repository of common analytic phase patterns."""
 
-import os
 import warnings
 
 import numpy as np

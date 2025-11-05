@@ -1,3 +1,5 @@
+from typing import Any
+
 from slmsuite.holography.algorithms._header import *
 from slmsuite.holography.algorithms._hologram import Hologram
 
@@ -33,7 +35,7 @@ class MultiplaneHologram(Hologram):
         intensity between target patterns cannot be relied upon.
     """
 
-    def __init__(self, holograms, weights: list | None = None) -> None:
+    def __init__(self, holograms: list[Hologram], weights: list[float] | np.ndarray | None = None) -> None:
         """Initializes a 'meta' hologram consisting of several sub-holograms optimizing at
         the same time.
 
@@ -81,12 +83,12 @@ class MultiplaneHologram(Hologram):
 
     @staticmethod
     def get_multiplane_defocus_blur(
-        cameraslm,
-        targets,
-        target_depths,
-        return_depths=None,
-        sharp_focus=True,
-    ):
+        cameraslm: Any,
+        targets: np.ndarray,
+        target_depths: list[float],
+        return_depths: list[float] | None = None,
+        sharp_focus: bool = True,
+    ) -> np.ndarray:
         """From a stack of target (power) images at ``target_depths``, generate a stack
         of images at ``return_depths``, accounting for defocus blur.
         Power is summed as if all depths were transparent; i.e. objects do no block
@@ -166,7 +168,7 @@ class MultiplaneHologram(Hologram):
 
     # Overload user functions with meta functionality.
 
-    def _update_flags(self, method: str, verbose: bool, feedback, stat_groups: list, **kwargs) -> None:
+    def _update_flags(self, method: str, verbose: bool, feedback: str, stat_groups: list[str], **kwargs: Any) -> None:
         # First update the parent flags.
         super()._update_flags(method, verbose, feedback, stat_groups, **kwargs)
 
@@ -174,11 +176,11 @@ class MultiplaneHologram(Hologram):
         for h in self.holograms:
             h.flags.update(self.flags)
 
-    def _update_weights(self, *args, **kwargs) -> None:
+    def _update_weights(self, *args: Any, **kwargs: Any) -> None:
         for h in self.holograms:
             h._update_weights(*args, **kwargs)
 
-    def _gs_farfield_routines(self, *args, **kwargs) -> None:
+    def _gs_farfield_routines(self, *args: Any, **kwargs: Any) -> None:
         for h in self.holograms:
             h._gs_farfield_routines(*args, **kwargs)
 
@@ -221,23 +223,25 @@ class MultiplaneHologram(Hologram):
         for h in self.holograms:
             h.reset_weights()
 
-    def plot_farfield(self, *args, **kwargs) -> None:
+    def plot_farfield(self, *args: Any, **kwargs: Any) -> None:
         for h in self.holograms:
             h.plot_farfield(*args, **kwargs)
 
     # def plot_nearfield(self, *args, **kwargs):
     #     for h in self.holograms: h.plot_nearfield(*args, **kwargs)
 
-    def plot_stats(self, *args, **kwargs) -> None:
+    def plot_stats(self, *args: Any, **kwargs: Any) -> None:
         for h in self.holograms:
             h.plot_stats(*args, **kwargs)
 
-    def _update_stats(self, stat_groups: list = []) -> None:
+    def _update_stats(self, stat_groups: list[str] | None = None) -> None:
         # FUTURE: make meta stat group.
+        if stat_groups is None:
+            stat_groups = []
         for h in self.holograms:
             h._update_stats(stat_groups)
 
-    def set_target(self, *args, **kwargs) -> None:
+    def set_target(self, *args: Any, **kwargs: Any) -> None:
         raise RuntimeError(
             "Do not use MultiplaneHologram.set_target(). "
             "Instead, update the targets of the children holograms directly."
@@ -245,7 +249,7 @@ class MultiplaneHologram(Hologram):
 
     # Multiplane hacks to get meta optimization to work.
 
-    def _cg_loss(self, phase_torch) -> Any:
+    def _cg_loss(self, phase_torch: Any) -> Any:
         """Sum the losses of all the child holograms."""
         loss = self.holograms[0]._cg_loss(phase_torch)
 
@@ -280,10 +284,10 @@ class MultiplaneHologram(Hologram):
         # Get meta self phase.
         self._nearfield_extract()
 
-    def _mraf_helper_routines(self) -> list:
+    def _mraf_helper_routines(self) -> list[Any]:
         return [h._mraf_helper_routines() for h in self.holograms]
 
-    def _gs_farfield_routines(self, mraf_variables: list) -> None:
+    def _gs_farfield_routines(self, mraf_variables: list[Any]) -> None:
         for h, mraf in zip(self.holograms, mraf_variables):
             h._gs_farfield_routines(mraf)
 

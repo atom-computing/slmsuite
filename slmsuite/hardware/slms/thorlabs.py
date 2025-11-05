@@ -1,3 +1,1 @@
-"""
-Use :class:`screenmirrored`.
-"""
+"""Use :class:`screenmirrored`."""

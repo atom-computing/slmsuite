@@ -1,5 +1,4 @@
-"""
-GPU-accelerated holography algorithms.
+"""GPU-accelerated holography algorithms.
 
 This module is currently focused on
 `Gerchberg-Saxton (GS) <http://www.u.arizona.edu/~ppoon/GerchbergandSaxton1972.pdf>`_
@@ -13,7 +12,7 @@ the `generation of optical focus arrays <https://doi.org/10.1364/OL.44.003178>`_
 a subset of general image formation. We also support `Mixed Region Amplitude Freedom (MRAF)
 <https://doi.org/10.1007/s10043-018-0456-x>`_ feedback.
 
-Tip
+Tip:
 ~~~
 This module makes use of the GPU-accelerated computing library :mod:`cupy`
 (`GitHub <https://docs.cupy.dev/en/stable/reference/index.html>`_).
@@ -22,7 +21,7 @@ CPU alone is significantly slower. Using :mod:`cupy` is highly encouraged.
 The only algorithm that has no CPU fallback is :class:`CompressedSpotHologram`
 in a Zernike basis beyond 2D or 3D spots. Other cases can use the CPU (however slowly).
 
-Note
+Note:
 ~~~~
 Internally, algorithms is split into several hidden files
 to enhance clarity and reduce file length.
@@ -35,13 +34,12 @@ to enhance clarity and reduce file length.
   (:class:`SpotHologram`, :class:`CompressedSpotHologram`).
 """
 
-from slmsuite.holography.algorithms._header import *
-
-from slmsuite.holography.algorithms._hologram import Hologram as _Hologram
 from slmsuite.holography.algorithms._feedback import FeedbackHologram as _FeedbackHologram
-from slmsuite.holography.algorithms._spots import SpotHologram as _SpotHologram
-from slmsuite.holography.algorithms._spots import CompressedSpotHologram as _CompressedSpotHologram
+from slmsuite.holography.algorithms._header import *
+from slmsuite.holography.algorithms._hologram import Hologram as _Hologram
 from slmsuite.holography.algorithms._multiplane import MultiplaneHologram as _MultiplaneHologram
+from slmsuite.holography.algorithms._spots import CompressedSpotHologram as _CompressedSpotHologram
+from slmsuite.holography.algorithms._spots import SpotHologram as _SpotHologram
 
 
 # Hack to get automodule to put the classes in the correct location.
