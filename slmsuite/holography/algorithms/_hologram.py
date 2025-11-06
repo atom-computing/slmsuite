@@ -1359,11 +1359,12 @@ class Hologram(_HologramStats):
             self.flags[flag] = kwargs[flag]
 
         # 1.3) Add in non-defaulted flags, with error checks
-        for group in stat_groups:
-            if group not in FEEDBACK_OPTIONS:
-                raise ValueError(
-                    f"Statistics group '{group}' not recognized as a feedback option.\nValid options: {FEEDBACK_OPTIONS}"
-                )
+        if stat_groups is not None:
+            for group in stat_groups:
+                if group not in FEEDBACK_OPTIONS:
+                    raise ValueError(
+                        f"Statistics group '{group}' not recognized as a feedback option.\nValid options: {FEEDBACK_OPTIONS}"
+                    )
         self.flags["stat_groups"] = stat_groups
 
         if feedback is not None:

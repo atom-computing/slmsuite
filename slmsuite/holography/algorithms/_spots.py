@@ -193,7 +193,7 @@ class CompressedSpotHologram(_AbstractSpotHologram):
         spot_amp: np.ndarray | None = None,
         cameraslm: Any = None,
         cuda: bool = False,
-        spot_integration_width_ij: int | None = None,
+        check_spot_integration_width_ij: bool = True,
         **kwargs: Any,
     ) -> None:
         r"""Initializes a :class:`CompressedSpotHologram` targeting given spots at ``spot_vectors``.
@@ -420,16 +420,13 @@ class CompressedSpotHologram(_AbstractSpotHologram):
             self.spot_integration_width_ij = int(2 * np.floor(self.spot_integration_width_ij / 2) + 1)
 
             cam_shape = cameraslm.cam.shape
-            self.spot_integration_width_ij = (
-                self.spot_integration_width_ij if spot_integration_width_ij is None else spot_integration_width_ij
-            )
 
             if (
                 np.any(self.spot_ij[0] < self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[1] < self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[0] >= cam_shape[1] - self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[1] >= cam_shape[0] - self.spot_integration_width_ij / 2)
-            ):
+            ) and check_spot_integration_width_ij:
                 raise ValueError(f"Spots outside camera bounds!\nSpots:\n{self.spot_ij}\nBounds: {cam_shape}")
         else:
             self.spot_integration_width_ij = None
@@ -1079,7 +1076,7 @@ class SpotHologram(_AbstractSpotHologram):
         null_radius: float | None = None,
         null_region: np.ndarray | None = None,
         null_region_radius_frac: float | None = None,
-        spot_integration_width_ij: int | None = None,
+        check_spot_integration_width_ij: bool = True,
         **kwargs: Any,
     ) -> None:
         """Initializes a :class:`SpotHologram` targeting given spots at ``spot_vectors``.
@@ -1263,10 +1260,6 @@ class SpotHologram(_AbstractSpotHologram):
         else:
             self.spot_integration_width_ij = None
 
-        self.spot_integration_width_ij = (
-            self.spot_integration_width_ij if spot_integration_width_ij is None else spot_integration_width_ij
-        )
-
         # Check to make sure spots are within relevant camera and SLM shapes.
         if (
             # np.any(self.spot_knm[0] < self.spot_integration_width_knm / 2)
@@ -1288,7 +1281,7 @@ class SpotHologram(_AbstractSpotHologram):
                 or np.any(self.spot_ij[1] < self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[0] >= cam_shape[1] - self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[1] >= cam_shape[0] - self.spot_integration_width_ij / 2)
-            ):
+            ) and check_spot_integration_width_ij:
                 raise ValueError(f"Spots outside camera bounds!\nSpots:\n{self.spot_ij}\nBounds: {cam_shape}")
 
         # Decide the null_radius (if necessary)
