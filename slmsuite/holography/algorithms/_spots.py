@@ -193,7 +193,7 @@ class CompressedSpotHologram(_AbstractSpotHologram):
         spot_amp: np.ndarray | None = None,
         cameraslm: Any = None,
         cuda: bool = False,
-        check_spot_integration_width_ij: bool = True,
+        validate_spot_bounds: bool = True,
         **kwargs: Any,
     ) -> None:
         r"""Initializes a :class:`CompressedSpotHologram` targeting given spots at ``spot_vectors``.
@@ -429,7 +429,7 @@ class CompressedSpotHologram(_AbstractSpotHologram):
                 or np.any(self.spot_ij[1] < self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[0] >= cam_shape[1] - self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[1] >= cam_shape[0] - self.spot_integration_width_ij / 2)
-            ) and check_spot_integration_width_ij:
+            ) and validate_spot_bounds:
                 raise ValueError(f"Spots outside camera bounds!\nSpots:\n{self.spot_ij}\nBounds: {cam_shape}")
         else:
             self.spot_integration_width_ij = None
@@ -1079,7 +1079,7 @@ class SpotHologram(_AbstractSpotHologram):
         null_radius: float | None = None,
         null_region: np.ndarray | None = None,
         null_region_radius_frac: float | None = None,
-        check_spot_integration_width_ij: bool = True,
+        validate_spot_bounds: bool = True,
         **kwargs: Any,
     ) -> None:
         """Initializes a :class:`SpotHologram` targeting given spots at ``spot_vectors``.
@@ -1288,7 +1288,7 @@ class SpotHologram(_AbstractSpotHologram):
                 or np.any(self.spot_ij[1] < self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[0] >= cam_shape[1] - self.spot_integration_width_ij / 2)
                 or np.any(self.spot_ij[1] >= cam_shape[0] - self.spot_integration_width_ij / 2)
-            ) and check_spot_integration_width_ij:
+            ) and validate_spot_bounds:
                 raise ValueError(f"Spots outside camera bounds!\nSpots:\n{self.spot_ij}\nBounds: {cam_shape}")
 
         # Decide the null_radius (if necessary)
